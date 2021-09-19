@@ -1,0 +1,7 @@
+{
+	"parent": "minecraft:item/generic_book_with_ribbon",
+	"textures": {
+		"cover": "minecraft:item/book/cover_written",
+		"ribbon": "minecraft:item/book/ribbon_written"
+	}
+}

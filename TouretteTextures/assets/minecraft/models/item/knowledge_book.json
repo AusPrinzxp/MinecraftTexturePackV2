@@ -1,0 +1,6 @@
+{
+	"parent": "minecraft:item/generic_book",
+	"textures": {
+		"cover": "minecraft:item/book/cover_knowledge"
+	}
+}
