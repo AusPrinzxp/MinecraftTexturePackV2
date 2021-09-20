@@ -1,8 +1,0 @@
-{
-	"parent": "minecraft:block/lantern/generic_hanging",
-	"textures": {
-		"glass": "minecraft:block/lantern/glass_normal",
-		"edges": "minecraft:block/lantern/edges_normal",
-		"particle": "minecraft:item/lantern"
-	}
-}

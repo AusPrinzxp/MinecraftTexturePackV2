@@ -1,8 +1,0 @@
-{
-	"parent": "minecraft:block/log/generic_log_spruce",
-	"textures": {
-		"side": "minecraft:block/spruce_log",
-		"bark": "minecraft:block/log/bark_spruce_normal",
-		"particle": "minecraft:block/spruce_log"
-	}
-}

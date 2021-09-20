@@ -1,8 +1,0 @@
-{
-	"parent": "minecraft:block/log/generic_log_dark_oak",
-	"textures": {
-		"side": "minecraft:block/stripped_dark_oak_log",
-		"bark": "minecraft:block/log/bark_dark_oak_stripped",
-		"particle": "minecraft:block/stripped_dark_oak_log"
-	}
-}

@@ -1,7 +1,0 @@
-{
-	"parent": "minecraft:block/torch/generic_wall_1",
-	"textures": {
-		"lit": "minecraft:block/torch/normal",
-		"particle": "minecraft:block/torch"
-	}
-}

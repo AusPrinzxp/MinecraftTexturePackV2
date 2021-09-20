@@ -1,6 +1,0 @@
-{
-	"parent": "minecraft:block/log/generic_log",
-	"textures": {
-		"section": "minecraft:block/log/section_acacia"
-	}
-}

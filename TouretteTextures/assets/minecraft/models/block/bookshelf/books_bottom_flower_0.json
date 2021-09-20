@@ -1,6 +1,0 @@
-{
-	"parent": "minecraft:block/bookshelf/generic_books_bottom_flower",
-	"textures": {
-		"books": "minecraft:block/bookshelf/books_0"
-	}
-}

@@ -1,8 +1,0 @@
-{
-	"parent": "minecraft:block/log/generic_log_jungle",
-	"textures": {
-		"side": "minecraft:block/jungle_log",
-		"bark": "minecraft:block/log/bark_jungle_normal",
-		"particle": "minecraft:block/jungle_log"
-	}
-}

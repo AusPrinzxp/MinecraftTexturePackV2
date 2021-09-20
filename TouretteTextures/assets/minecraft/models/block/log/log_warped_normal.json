@@ -1,8 +1,0 @@
-{
-	"parent": "minecraft:block/log/generic_log_crimson",
-	"textures": {
-		"side": "minecraft:block/warped_stem",
-		"bark": "minecraft:block/log/bark_crimson_normal",
-		"particle": "minecraft:block/warped_stem"
-	}
-}
