@@ -37,7 +37,7 @@ jobs:
 
       - name: Discord Webhook Action
         if: ${{ github.event.inputs.sounds == true }}
-        uses: tsickert/discord-webhook-action@v5.3.0
+        uses: tsickert/discord-webhook@v5.3.0
         with:
           url: ${{ secrets.DISCORD_WEBHOOK_URL }}
           title: "New TouretteTextures: ${{ github.event.inputs.version }}"
@@ -45,7 +45,7 @@ jobs:
 
       - name: Discord Webhook Action
         if: ${{ github.event.inputs.sounds == true }}
-        uses: tsickert/discord-webhook-action@v5.3.0
+        uses: tsickert/discord-webhook@v5.3.0
         with:
           url: ${{ secrets.DISCORD_WEBHOOK_URL }}
           title: "New TouretteSounds: ${{ github.event.inputs.version }}"
