@@ -1,0 +1,52 @@
+name: Release Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version'
+        required: true
+        default: '1.0.0'
+      sounds:
+        description: 'Include Sounds'
+        default: false
+        type: boolean
+      textures:
+        description: 'Include Textures'
+        default: false
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install zip
+        run: sudo apt-get install zip -y
+      
+      - name: Compress Sounds
+        if: ${{ github.event.inputs.sounds == true }}
+        run: zip -r TouretteSounds.zip TouretteSounds
+
+      - name: Compress Textures
+        if: ${{ github.event.inputs.textures == true }}
+        run: zip -r TouretteTextures.zip TouretteTextures
+
+      - name: Discord Webhook Action
+        if: ${{ github.event.inputs.sounds == true }}
+        uses: tsickert/discord-webhook-action@v5.3.0
+        with:
+          url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: "New TouretteTextures: ${{ github.event.inputs.version }}"
+          file: TouretteTextures.zip
+
+      - name: Discord Webhook Action
+        if: ${{ github.event.inputs.sounds == true }}
+        uses: tsickert/discord-webhook-action@v5.3.0
+        with:
+          url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: "New TouretteSounds: ${{ github.event.inputs.version }}"
+          file: TouretteSounds.zip
