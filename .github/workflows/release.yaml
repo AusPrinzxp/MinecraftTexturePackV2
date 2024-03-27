@@ -28,15 +28,23 @@ jobs:
         run: sudo apt-get install zip -y
       
       - name: Compress Sounds
-        if: ${{ github.event.inputs.sounds }}
-        run: zip -r TouretteSounds.zip TouretteSounds
+        if: ${{ github.event.inputs.sounds == 'true' }}
+        run: |
+          cd TouretteSounds
+          zip -r TouretteSounds.zip *
+          mv TouretteSounds.zip ..
+          cd ..
 
       - name: Compress Textures
-        if: ${{ github.event.inputs.textures }}
-        run: zip -r TouretteTextures.zip TouretteTextures
+        if: ${{ github.event.inputs.textures == 'true' }}
+        run: |
+          cd TouretteTextures
+          zip -r TouretteTextures.zip *
+          mv TouretteTextures.zip ..
+          cd ..
 
       - name: Discord Webhook Action
-        if: ${{ github.event.inputs.textures }}
+        if: ${{ github.event.inputs.textures == 'true' }}
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -44,7 +52,7 @@ jobs:
           filename: TouretteTextures.zip
 
       - name: Discord Webhook Action
-        if: ${{ github.event.inputs.sounds }}
+        if: ${{ github.event.inputs.sounds == 'true' }}
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
