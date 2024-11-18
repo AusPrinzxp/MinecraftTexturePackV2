@@ -31,30 +31,63 @@ jobs:
         if: ${{ github.event.inputs.sounds == 'true' }}
         run: |
           cd TouretteSounds
-          zip -r TouretteSounds.zip *
-          mv TouretteSounds.zip ..
+          zip -r TouretteSounds_${{ github.event.inputs.version }}.zip *
+          mv TouretteSounds_${{ github.event.inputs.version }}.zip ..
           cd ..
 
       - name: Compress Textures
         if: ${{ github.event.inputs.textures == 'true' }}
         run: |
           cd TouretteTextures
-          zip -r TouretteTextures.zip *
-          mv TouretteTextures.zip ..
+          zip -r TouretteTextures_${{ github.event.inputs.version }}.zip *
+          mv TouretteTextures_${{ github.event.inputs.version }}.zip ..
           cd ..
 
-      - name: Discord Webhook Action
-        if: ${{ github.event.inputs.textures == 'true' }}
-        uses: tsickert/discord-webhook@v6.0.0
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
         with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          embed-title: "New TouretteTextures: ${{ github.event.inputs.version }}"
-          filename: TouretteTextures.zip
+          tag_name: ${{ github.event.inputs.version }}
+          release_name: "Release ${{ github.event.inputs.version }}"
+          body: "This release contains the latest TouretteTextures and/or TouretteSounds."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Discord Webhook Action
+      - name: Upload TouretteSounds to Release
+        if: ${{ github.event.inputs.sounds == 'true' }}
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./TouretteSounds_${{ github.event.inputs.version }}.zip
+          asset_name: TouretteSounds_${{ github.event.inputs.version }}.zip
+          asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload TouretteTextures to Release
+        if: ${{ github.event.inputs.textures == 'true' }}
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./TouretteTextures_${{ github.event.inputs.version }}.zip
+          asset_name: TouretteTextures_${{ github.event.inputs.version }}.zip
+          asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Send Discord Webhook for TouretteSounds
         if: ${{ github.event.inputs.sounds == 'true' }}
         uses: tsickert/discord-webhook@v6.0.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
           embed-title: "New TouretteSounds: ${{ github.event.inputs.version }}"
-          filename: TouretteSounds.zip
+          embed-description: "[Download here](https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.version }}/TouretteSounds_${{ github.event.inputs.version }}.zip)"
+
+      - name: Send Discord Webhook for TouretteTextures
+        if: ${{ github.event.inputs.textures == 'true' }}
+        uses: tsickert/discord-webhook@v6.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          embed-title: "New TouretteTextures: ${{ github.event.inputs.version }}"
+          embed-description: "[Download here](https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.version }}/TouretteTextures_${{ github.event.inputs.version }}.zip)"
+
