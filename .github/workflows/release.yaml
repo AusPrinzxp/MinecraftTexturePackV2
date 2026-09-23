@@ -1,93 +1,137 @@
-name: Release Workflow
+name: Release
+run-name: Release ${{ inputs.version }}
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version'
+        description: Release version or tag
         required: true
         default: '1.0.0'
       sounds:
-        description: 'Include Sounds'
+        description: Include TouretteSounds
         default: false
         type: boolean
       textures:
-        description: 'Include Textures'
+        description: Include TouretteTextures
         default: false
         type: boolean
 
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.repository }}-${{ inputs.version }}
+  cancel-in-progress: false
+
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Install zip
-        run: sudo apt-get install zip -y
-      
-      - name: Compress Sounds
-        if: ${{ github.event.inputs.sounds == 'true' }}
+      - name: Validate release inputs
+        env:
+          VERSION: ${{ inputs.version }}
+          SOUNDS: ${{ inputs.sounds }}
+          TEXTURES: ${{ inputs.textures }}
         run: |
-          cd TouretteSounds
-          zip -r TouretteSounds_${{ github.event.inputs.version }}.zip *
-          mv TouretteSounds_${{ github.event.inputs.version }}.zip ..
-          cd ..
+          set -euo pipefail
 
-      - name: Compress Textures
-        if: ${{ github.event.inputs.textures == 'true' }}
+          if [[ "$SOUNDS" != "true" && "$TEXTURES" != "true" ]]; then
+            echo "::error::Select at least one release asset."
+            exit 1
+          fi
+
+          if [[ ! "$VERSION" =~ ^[0-9A-Za-z][0-9A-Za-z._+-]*$ ]]; then
+            echo "::error::Version must be a valid release tag without spaces or slashes."
+            exit 1
+          fi
+
+      - name: Package selected assets
+        env:
+          VERSION: ${{ inputs.version }}
+          SOUNDS: ${{ inputs.sounds }}
+          TEXTURES: ${{ inputs.textures }}
         run: |
-          cd TouretteTextures
-          zip -r TouretteTextures_${{ github.event.inputs.version }}.zip *
-          mv TouretteTextures_${{ github.event.inputs.version }}.zip ..
-          cd ..
+          set -euo pipefail
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        with:
-          tag_name: ${{ github.event.inputs.version }}
-          release_name: "Release ${{ github.event.inputs.version }}"
-          body: "This release contains the latest TouretteTextures and/or TouretteSounds."
+          assets=()
+
+          if [[ "$SOUNDS" == "true" ]]; then
+            asset="TouretteSounds_${VERSION}.zip"
+            (
+              cd TouretteSounds
+              zip -r "../${asset}" .
+            )
+            assets+=("$asset")
+          fi
+
+          if [[ "$TEXTURES" == "true" ]]; then
+            asset="TouretteTextures_${VERSION}.zip"
+            (
+              cd TouretteTextures
+              zip -r "../${asset}" .
+            )
+            assets+=("$asset")
+          fi
+
+          printf '%s\n' "${assets[@]}" > release-assets.txt
+
+      - name: Create GitHub release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          mapfile -t assets < release-assets.txt
+          gh release create "$VERSION" "${assets[@]}" \
+            --title "Release $VERSION" \
+            --notes "This release contains the latest TouretteTextures and/or TouretteSounds."
 
-      - name: Upload TouretteSounds to Release
-        if: ${{ github.event.inputs.sounds == 'true' }}
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./TouretteSounds_${{ github.event.inputs.version }}.zip
-          asset_name: TouretteSounds_${{ github.event.inputs.version }}.zip
-          asset_content_type: application/zip
+      - name: Notify Discord
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          VERSION: ${{ inputs.version }}
+          REPOSITORY: ${{ github.repository }}
+          SOUNDS: ${{ inputs.sounds }}
+          TEXTURES: ${{ inputs.textures }}
+        run: |
+          set -euo pipefail
 
-      - name: Upload TouretteTextures to Release
-        if: ${{ github.event.inputs.textures == 'true' }}
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./TouretteTextures_${{ github.event.inputs.version }}.zip
-          asset_name: TouretteTextures_${{ github.event.inputs.version }}.zip
-          asset_content_type: application/zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          if [[ -z "$DISCORD_WEBHOOK_URL" ]]; then
+            echo "::warning::DISCORD_WEBHOOK_URL is not configured; skipping Discord notifications."
+            exit 0
+          fi
 
-      - name: Send Discord Webhook for TouretteSounds
-        if: ${{ github.event.inputs.sounds == 'true' }}
-        uses: tsickert/discord-webhook@v6.0.0
-        with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          embed-title: "New TouretteSounds: ${{ github.event.inputs.version }}"
-          embed-description: "[Download here](https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.version }}/TouretteSounds_${{ github.event.inputs.version }}.zip)"
+          send_message() {
+            local title="$1"
+            local description="$2"
+            local payload
+            payload="$(jq -n \
+              --arg title "$title" \
+              --arg description "$description" \
+              '{embeds: [{title: $title, description: $description}]}')"
 
-      - name: Send Discord Webhook for TouretteTextures
-        if: ${{ github.event.inputs.textures == 'true' }}
-        uses: tsickert/discord-webhook@v6.0.0
-        with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          embed-title: "New TouretteTextures: ${{ github.event.inputs.version }}"
-          embed-description: "[Download here](https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.version }}/TouretteTextures_${{ github.event.inputs.version }}.zip)"
+            curl --fail-with-body --silent --show-error \
+              --header 'Content-Type: application/json' \
+              --data "$payload" \
+              "$DISCORD_WEBHOOK_URL"
+          }
 
+          if [[ "$SOUNDS" == "true" ]]; then
+            send_message \
+              "New TouretteSounds: $VERSION" \
+              "[Download here](https://github.com/$REPOSITORY/releases/download/$VERSION/TouretteSounds_${VERSION}.zip)"
+          fi
+
+          if [[ "$TEXTURES" == "true" ]]; then
+            send_message \
+              "New TouretteTextures: $VERSION" \
+              "[Download here](https://github.com/$REPOSITORY/releases/download/$VERSION/TouretteTextures_${VERSION}.zip)"
+          fi
