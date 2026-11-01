@@ -1,0 +1,11 @@
+{
+  "variants": {
+    "": [
+      {"model": "block/nether_wart_block",         "weight":5 },
+      {"model": "block/nether_wart_block_random1", "weight":1 },
+      {"model": "block/nether_wart_block_random2", "weight":1 },
+      {"model": "block/nether_wart_block_random3", "weight":1 },
+      {"model": "block/nether_wart_block_random4", "weight":2 }
+    ]
+  }
+}

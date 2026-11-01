@@ -1,0 +1,18 @@
+{
+  "animation": {
+    "frametime": 15,
+    "interpolate": true,
+    "frames": [
+      1,
+      {"index": 0,"time": 21},
+      3,
+    {"index": 0,"time": 21},
+      1,
+    {"index": 0,"time": 21},
+      2,
+    {"index": 0,"time": 31},
+      {"index": 3,"time": 42},
+    {"index": 0,"time": 31}
+    ]
+  }
+}
